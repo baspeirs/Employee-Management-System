@@ -1,0 +1,23 @@
+{
+  "name": "homework12-employee_sys",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/baspeirs/homework12-employee_sys.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/baspeirs/homework12-employee_sys/issues"
+  },
+  "homepage": "https://github.com/baspeirs/homework12-employee_sys#readme",
+  "dependencies": {
+    "inquirer": "^7.2.0",
+    "mysql": "^2.18.1"
+  }
+}
