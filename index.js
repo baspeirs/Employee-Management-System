@@ -1,7 +1,22 @@
 const inquirer = require("inquirer");
 const mysql = require("mysql");
 
-// lets start inquirer first, we have 9 questions to ask
+const connection = mysql.createConnection({
+  host: "localhost",
+
+  port: 3306,
+
+  user: "root",
+
+  password: "rootpass",
+  database: "company_DB"
+});
+
+connection.connect(err => {
+  if (err) throw err;
+  console.log("Connected to database as id: " + connection.threadId + "\n");
+  start();
+});
 
 function start() {
     inquirer
@@ -62,6 +77,7 @@ function start() {
 
       case "exit":
         console.log("Goodbye!")
+        connection.end();
         break;
       }
     });
@@ -69,7 +85,12 @@ function start() {
 
 function viewDepartments() {
     console.log("View Department")
-    start();
+    connection.query("SELECT * FROM departments", (err, res) => {
+      if (err) throw err;
+
+      console.log(res);
+      start();
+    });
 };
 
 function viewRoles() {
@@ -83,14 +104,24 @@ function viewEmployees() {
 };
 
 function addDepartment() {
-    console.log("Add Department")
     inquirer.prompt({
       name: "newDep",
       type: "input",
       message: "What is the name of the new department?"
-    }).then(answer => {
-      console.log(answer.newDep);
-      start();
+    }).then((response) => {
+      console.log(response);
+      connection.query("INSERT INTO departments SET ?", 
+      {
+        name: response.newDep
+      }, 
+      function(err, res) {
+        if (err) throw err;
+
+        console.log("Sucessfully input into table!")
+        console.log(res)
+        start();
+      });
+      
     })
     
 };
@@ -114,15 +145,12 @@ function addRole() {
         message: "What department does the role belong to? (will require a list of departments later)"
       }],
       ).then(answer => {
-      console.log(answer.newTitle);
-      console.log(answer.newSalary);
-      console.log(answer.whatDepartment);
+      console.log(answer)
       start();
     })
 };
 
 function addEmployee() {
-    console.log("Add Employee")
     inquirer.prompt([
       {
         name: "firstName",
@@ -145,10 +173,7 @@ function addEmployee() {
         message: "What role does the new employee have? (will require a list of departments later)"
       }]
       ).then(answer => {
-      console.log(answer.firstName);
-      console.log(answer.lastName);
-      console.log(answer.whatDepartment);
-      console.log(answer.whatRole)
+      console.log(answer)
       start();
       });
 };
@@ -167,5 +192,3 @@ function removeEmployee() {
     console.log("Remove Employee")
     start();
 };
-
-start();
