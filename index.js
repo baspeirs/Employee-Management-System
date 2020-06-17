@@ -88,7 +88,7 @@ function viewDepartments() {
     connection.query("SELECT * FROM departments", (err, res) => {
       if (err) throw err;
 
-      console.log(res);
+      res.forEach(element => console.log(element.department_id + " | " + element.name));
       start();
     });
 };
@@ -108,11 +108,11 @@ function addDepartment() {
       name: "newDep",
       type: "input",
       message: "What is the name of the new department?"
-    }).then((response) => {
-      console.log(response);
+    }).then((answer) => {
+      console.log(answer);
       connection.query("INSERT INTO departments SET ?", 
       {
-        name: response.newDep
+        name: answer.newDep
       }, 
       function(err, res) {
         if (err) throw err;
@@ -127,27 +127,46 @@ function addDepartment() {
 };
 
 function addRole() {
-    console.log("Add Role")
-    inquirer.prompt([
-      {
-        name: "newTitle",
-        type: "input",
-        message: "What is the title of the new role?"
-      },
-      {
-        name: "newSalary",
-        type: "input",
-        message: "What is the salary for this role?"
-      },
-      {
-        name: "whatDepartment",
-        type: "input",
-        message: "What department does the role belong to? (will require a list of departments later)"
-      }],
-      ).then(answer => {
-      console.log(answer)
-      start();
-    })
+    console.log("Add Role");
+    connection.query("SELECT * FROM departments", (err, data) => {
+      if (err) throw err;
+      console.log(data);
+      inquirer.prompt([
+        {
+          name: "newTitle",
+          type: "input",
+          message: "What is the title of the new role?"
+        },
+        {
+          name: "newSalary",
+          type: "input",
+          message: "What is the salary for this role?"
+        },
+        {
+          name: "whatDepartment",
+          type: "list",
+          message: "What department does the role belong to?",
+          choices: data
+        }],
+        ).then((answer) => {
+          // now we need answer.whatDepartment to select the id from the matching
+          // department id - data[i].department_id
+          // say: answer.whatDepartment = tech | then grab the id from data[i].name that matches
+          let depId;
+          data.forEach(element => {
+            if (element.name === answer.whatDepartment) {
+              depId = element.department_id;
+            }
+          });
+          connection.query("INSERT INTO roles set ?", 
+          {
+            title: answer.newTitle,
+            salary: answer.newSalary,
+            department_id: depId
+          })
+        start();
+      });
+    }) 
 };
 
 function addEmployee() {

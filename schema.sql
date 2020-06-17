@@ -10,7 +10,7 @@ CREATE TABLE departments (
     PRIMARY KEY(department_id)
 );
 
-CREATE TABLE rolls (
+CREATE TABLE roles (
 	roll_id INT AUTO_INCREMENT NOT NULL,
     title VARCHAR(30) NOT NULL,
     salary INT(10) NOT NULL,
