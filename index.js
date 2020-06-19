@@ -127,7 +127,6 @@ function addDepartment() {
 };
 
 function addRole() {
-    console.log("Add Role");
     connection.query("SELECT * FROM departments", (err, data) => {
       if (err) throw err;
       console.log(data);
@@ -149,16 +148,13 @@ function addRole() {
           choices: data
         }],
         ).then((answer) => {
-          // now we need answer.whatDepartment to select the id from the matching
-          // department id - data[i].department_id
-          // say: answer.whatDepartment = tech | then grab the id from data[i].name that matches
           let depId;
           data.forEach(element => {
             if (element.name === answer.whatDepartment) {
               depId = element.department_id;
             }
           });
-          connection.query("INSERT INTO roles set ?", 
+          connection.query("INSERT INTO roles SET ?", 
           {
             title: answer.newTitle,
             salary: answer.newSalary,
@@ -170,6 +166,9 @@ function addRole() {
 };
 
 function addEmployee() {
+  connection.query("SELECT * FROM roles", (err, data) => {
+    if (err) throw err;
+    console.log(data)
     inquirer.prompt([
       {
         name: "firstName",
@@ -182,19 +181,41 @@ function addEmployee() {
         message: "What is the LAST name of the new employee?"
       },
       {
-        name: "whatDepartment",
-        type: "input",
-        message: "What department does the new employee belong to? (will require a list of departments later)"
-      },
-      {
         name: "whatRole",
-        type: "input",
-        message: "What role does the new employee have? (will require a list of departments later)"
+        type: "list",
+        message: "What role does the new employee have?",
+        choices: function() {
+          let roleArray = []
+          data.forEach(element => {
+            roleArray.push(element.title);
+          })
+          return roleArray
+        }
       }]
       ).then(answer => {
-      console.log(answer)
-      start();
+      // console.log(answer)
+      data.forEach(element => {
+        let empRoleId;
+        if (element.title === answer.whatRole) {
+          // ===== this needs to be fixed when the server is reset ======
+          empRoleId = element.role_id
+          console.log(empRoleId);
+          connection.query("INSERT INTO employees SET ?", 
+        {
+          firstname: answer.firstName,
+          lastname: answer.lastName,
+          role_id: empRoleId
+        },
+        (err, result) => {
+          if (err) throw err;
+          console.log("Successfully added " + answer.firstName + " " + answer.lastName);
+          console.log(result);
+          start();
+        }) 
+        }
       });
+      });
+  })
 };
 
 function removeDepartment() {
