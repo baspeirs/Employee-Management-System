@@ -1,5 +1,7 @@
 const inquirer = require("inquirer");
 const mysql = require("mysql");
+const figlet = require("figlet");
+const table = require("console.table");
 
 const connection = mysql.createConnection({
   host: "localhost",
@@ -17,6 +19,16 @@ connection.connect(err => {
   console.log("Connected to database as id: " + connection.threadId + "\n");
   start();
 });
+
+function welcomeMSG() {
+  console.log("\n")
+  console.log(figlet.textSync(`Employee\nDatabase`, {
+    font: "Standard",
+    horizontalLayout: "default",
+    verticalLayout: "default"
+  }))
+}
+welcomeMSG();
 
 function start() {
     inquirer
@@ -84,7 +96,6 @@ function start() {
 }
 
 function viewDepartments() {
-    console.log("View Department")
     connection.query("SELECT * FROM departments", (err, res) => {
       if (err) throw err;
 
@@ -94,13 +105,25 @@ function viewDepartments() {
 };
 
 function viewRoles() {
-    console.log("View Role")
-    start();
+    connection.query("SELECT * FROM roles LEFT JOIN departments ON roles.department_id = departments.department_id", (err, result) => {
+      if (err) throw err;
+      result.forEach(element => console.log("Title: " + element.title + " | Salary: $" + element.salary + " | " +"Department: " + element.name))
+      start();
+    })
 };
 
 function viewEmployees() {
-    console.log("View Employee")
-    start();
+    let query = "SELECT e.employee_id AS id, e.firstName AS 'first name', e.lastName AS 'last name', ";
+    query += "r.title AS role, d.name AS department, r.salary AS salary ";
+    query += "FROM employees AS e LEFT JOIN roles AS r ON e.role_id = r.role_id ";
+    query += "LEFT JOIN departments AS d ON d.department_id = r.department_id ";
+    query += "ORDER BY e.employee_id ASC"
+    connection.query(query, (err, result) => {
+      if (err) throw err;
+      console.table(result);
+
+      start();
+    })
 };
 
 function addDepartment() {
@@ -109,7 +132,6 @@ function addDepartment() {
       type: "input",
       message: "What is the name of the new department?"
     }).then((answer) => {
-      console.log(answer);
       connection.query("INSERT INTO departments SET ?", 
       {
         name: answer.newDep
@@ -168,7 +190,6 @@ function addRole() {
 function addEmployee() {
   connection.query("SELECT * FROM roles", (err, data) => {
     if (err) throw err;
-    console.log(data)
     inquirer.prompt([
       {
         name: "firstName",
@@ -193,13 +214,11 @@ function addEmployee() {
         }
       }]
       ).then(answer => {
-      // console.log(answer)
       data.forEach(element => {
         let empRoleId;
         if (element.title === answer.whatRole) {
           // ===== this needs to be fixed when the server is reset ======
           empRoleId = element.role_id
-          console.log(empRoleId);
           connection.query("INSERT INTO employees SET ?", 
         {
           firstname: answer.firstName,
@@ -209,7 +228,6 @@ function addEmployee() {
         (err, result) => {
           if (err) throw err;
           console.log("Successfully added " + answer.firstName + " " + answer.lastName);
-          console.log(result);
           start();
         }) 
         }
@@ -230,5 +248,31 @@ function removeRole() {
 
 function removeEmployee() {
     console.log("Remove Employee")
-    start();
+    connection.query("SELECT * FROM employees", (err, data) => {
+      if (err) throw err;
+      inquirer.prompt([
+        {
+          type: "list",
+          message: "Which employee are you firing?",
+          name: "chosenDelete",
+          choices: function() {
+            let roleArray = []
+            data.forEach(element => {
+              roleArray.push(element.firstName + " " + element.lastName);
+            })
+            return roleArray
+          }
+        }]
+        ).then(answer => {
+          console.log(answer);
+          let chosenDelete = answer.chosenDelete.split(" ")
+          console.log(chosenDelete)
+          connection.query("DELETE FROM employees WHERE firstName = ? AND lastName = ?", [chosenDelete[0], chosenDelete[1]], (err, result) => {
+            if (err) throw err;
+            console.log(result);
+            start();
+          })
+        }
+      );
+    });
 };

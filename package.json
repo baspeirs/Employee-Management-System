@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/baspeirs/homework12-employee_sys#readme",
   "dependencies": {
+    "console.table": "^0.10.0",
+    "figlet": "^1.4.0",
     "inquirer": "^7.2.0",
     "mysql": "^2.18.1"
   }
