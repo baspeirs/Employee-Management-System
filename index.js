@@ -237,23 +237,71 @@ function addEmployee() {
 };
 
 function removeDepartment() {
-    console.log("Remove Department")
-    start();
+  console.log("hello")
+  connection.query("SELECT * FROM departments", (err, data) => {
+    if (err) throw err;
+    console.log("world")
+    console.log(data)
+    inquirer.prompt([
+      {
+        type: "list",
+        message: "Which department are you removing?",
+        name: "removeDepartment", 
+        choices: () => {
+          let departmentArray = [];
+          data.forEach(element => {
+            departmentArray.push(element.name)
+          })
+          return departmentArray;
+        }
+      }
+    ]).then(answer => {
+      let removeDepartment = answer.removeDepartment;
+      console.log(removeDepartment);
+      connection.query("DELETE FROM departments WHERE name = ?", [removeDepartment], (err, result) => {
+        if (err) throw err;
+        console.log(result);
+        start();
+      });
+    });
+  });
 };
 
 function removeRole() {
-    console.log("Remove Role")
-    start();
+    connection.query("SELECT * FROM roles", (err, data) => {
+      if (err) throw err;
+      inquirer.prompt([
+        {
+          type: "list",
+          message: "Which role are you removing?",
+          name: "removeRole", 
+          choices: () => {
+            let roleArray = [];
+            data.forEach(element => {
+              roleArray.push(element.title)
+            })
+            return roleArray;
+          }
+        }
+      ]).then(answer => {
+        let removeRole = answer.removeRole;
+        console.log(removeRole);
+        connection.query("DELETE FROM roles WHERE title = ?", [removeRole], (err, result) => {
+          if (err) throw err;
+          console.log(result);
+          start();
+        });
+      });
+    });
 };
 
 function removeEmployee() {
-    console.log("Remove Employee")
     connection.query("SELECT * FROM employees", (err, data) => {
       if (err) throw err;
       inquirer.prompt([
         {
           type: "list",
-          message: "Which employee are you firing?",
+          message: "Which employee are you removing?",
           name: "chosenDelete",
           choices: function() {
             let roleArray = []
@@ -264,7 +312,6 @@ function removeEmployee() {
           }
         }]
         ).then(answer => {
-          console.log(answer);
           let chosenDelete = answer.chosenDelete.split(" ")
           console.log(chosenDelete)
           connection.query("DELETE FROM employees WHERE firstName = ? AND lastName = ?", [chosenDelete[0], chosenDelete[1]], (err, result) => {
