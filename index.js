@@ -30,6 +30,15 @@ function welcomeMSG() {
 }
 welcomeMSG();
 
+function departMSG() {
+  console.log("\n");
+  console.log(figlet.textSync(`Goodbye!`, {
+    font: "Standard",
+    horizontalLayout: "default",
+    verticalLayout: "default"
+  }))
+}
+
 function start() {
     inquirer
     .prompt({
@@ -88,7 +97,7 @@ function start() {
         break;
 
       case "exit":
-        console.log("Goodbye!")
+        departMSG()
         connection.end();
         break;
       }
@@ -96,20 +105,27 @@ function start() {
 }
 
 function viewDepartments() {
-    connection.query("SELECT * FROM departments", (err, res) => {
+    let query = "SELECT d.department_id AS id, d.name AS department ";
+    query += "FROM departments AS d ORDER BY d.department_id ASC"
+    connection.query(query, (err, result) => {
       if (err) throw err;
-
-      res.forEach(element => console.log(element.department_id + " | " + element.name));
+      console.log("\n");
+      console.table(result);
       start();
     });
 };
 
 function viewRoles() {
-    connection.query("SELECT * FROM roles LEFT JOIN departments ON roles.department_id = departments.department_id", (err, result) => {
-      if (err) throw err;
-      result.forEach(element => console.log("Title: " + element.title + " | Salary: $" + element.salary + " | " +"Department: " + element.name))
-      start();
-    })
+  let query = "SELECT r.title AS role, r.salary AS salary, d.name AS department ";
+  query += "FROM roles AS r LEFT JOIN departments AS d ON d.department_id = r.department_id ";
+  query += "ORDER BY r.department_id ASC"
+  connection.query(query, (err, result) => {
+    if (err) throw err;
+    console.log("\n")
+    console.table(result);
+
+    start();
+  })
 };
 
 function viewEmployees() {
@@ -120,6 +136,7 @@ function viewEmployees() {
     query += "ORDER BY e.employee_id ASC"
     connection.query(query, (err, result) => {
       if (err) throw err;
+      console.log("\n")
       console.table(result);
 
       start();
@@ -139,8 +156,7 @@ function addDepartment() {
       function(err, res) {
         if (err) throw err;
 
-        console.log("Sucessfully input into table!")
-        console.log(res)
+        console.log("\nSucessfully input into table: " + answer.newDep + "\n")
         start();
       });
       
@@ -151,7 +167,6 @@ function addDepartment() {
 function addRole() {
     connection.query("SELECT * FROM departments", (err, data) => {
       if (err) throw err;
-      console.log(data);
       inquirer.prompt([
         {
           name: "newTitle",
@@ -182,6 +197,7 @@ function addRole() {
             salary: answer.newSalary,
             department_id: depId
           })
+          console.log("\nSucessfully added title of " + answer.newTitle + "!\n")
         start();
       });
     }) 
@@ -227,7 +243,7 @@ function addEmployee() {
         },
         (err, result) => {
           if (err) throw err;
-          console.log("Successfully added " + answer.firstName + " " + answer.lastName);
+          console.log("\nSuccessfully added " + answer.firstName + " " + answer.lastName + "\n");
           start();
         }) 
         }
@@ -237,11 +253,8 @@ function addEmployee() {
 };
 
 function removeDepartment() {
-  console.log("hello")
   connection.query("SELECT * FROM departments", (err, data) => {
     if (err) throw err;
-    console.log("world")
-    console.log(data)
     inquirer.prompt([
       {
         type: "list",
@@ -257,10 +270,9 @@ function removeDepartment() {
       }
     ]).then(answer => {
       let removeDepartment = answer.removeDepartment;
-      console.log(removeDepartment);
       connection.query("DELETE FROM departments WHERE name = ?", [removeDepartment], (err, result) => {
         if (err) throw err;
-        console.log(result);
+        console.log("\n" + removeDepartment + " has been removed from the system!\n");
         start();
       });
     });
@@ -285,10 +297,9 @@ function removeRole() {
         }
       ]).then(answer => {
         let removeRole = answer.removeRole;
-        console.log(removeRole);
         connection.query("DELETE FROM roles WHERE title = ?", [removeRole], (err, result) => {
           if (err) throw err;
-          console.log(result);
+          console.log("\n" + removeRole + " has been removed from the system!\n");
           start();
         });
       });
@@ -313,10 +324,9 @@ function removeEmployee() {
         }]
         ).then(answer => {
           let chosenDelete = answer.chosenDelete.split(" ")
-          console.log(chosenDelete)
           connection.query("DELETE FROM employees WHERE firstName = ? AND lastName = ?", [chosenDelete[0], chosenDelete[1]], (err, result) => {
             if (err) throw err;
-            console.log(result);
+            console.log("\n" + chosenDelete + " has been removed from the system!\n");
             start();
           })
         }
