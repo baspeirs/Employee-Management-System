@@ -228,12 +228,12 @@ function addEmployee() {
           })
           return roleArray
         }
-      }]
+      }
+    ]
       ).then(answer => {
       data.forEach(element => {
         let empRoleId;
         if (element.title === answer.whatRole) {
-          // ===== this needs to be fixed when the server is reset ======
           empRoleId = element.role_id
           connection.query("INSERT INTO employees SET ?", 
         {
